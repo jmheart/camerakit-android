@@ -26,13 +26,10 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <com.camerakit.CameraView
+            <com.camerakit.CameraView xmlns:app="http://schemas.android.com/apk/res-auto"
                 android:id="@+id/camera"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_gravity="center"
-                android:adjustViewBounds="true"
-                app:camera_facing="back" />
+                android:layout_height="match_parent" />
 
             <de.hdodenhof.circleimageview.CircleImageView
                 android:id="@+id/photoImageView"

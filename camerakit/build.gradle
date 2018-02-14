@@ -25,12 +25,17 @@ android {
         main {
             java {
                 setSrcDirs([])
-                srcDir 'src/main/java/public/base'
-                srcDir 'src/main/java/public/types'
-                srcDir 'src/main/java/public/modules'
-                srcDir 'src/main/java/public/products'
-                srcDir 'src/main/java/core/base'
-                srcDir 'src/main/java/core/v1'
+                srcDir 'src/main/java/public'
+                srcDir 'src/main/java/public.types'
+                srcDir 'src/main/java/public.products'
+                srcDir 'src/main/java/core'
+                srcDir 'src/main/java/core.camera'
+                srcDir 'src/main/java/core.camera.flash'
+                srcDir 'src/main/java/core.camera.focus'
+                srcDir 'src/main/java/core.camera.photo'
+                srcDir 'src/main/java/core.camera.video'
+                srcDir 'src/main/java/core.camera.zoom'
+                srcDir 'src/main/java/core.preview'
             }
         }
     }

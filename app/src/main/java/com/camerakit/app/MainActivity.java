@@ -1,11 +1,10 @@
 package com.camerakit.app;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Color;
-import android.media.MediaScannerConnection;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
@@ -15,14 +14,11 @@ import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.animation.DecelerateInterpolator;
 import android.widget.Button;
 import android.widget.ImageView;
 
-import com.camerakit.CameraPhotographer;
 import com.camerakit.CameraView;
-import com.camerakit.Photo;
-import com.camerakit.PhotoFile;
+import com.camerakit.Facing;
 
 public class MainActivity extends AppCompatActivity implements Toolbar.OnMenuItemClickListener {
 
@@ -38,7 +34,7 @@ public class MainActivity extends AppCompatActivity implements Toolbar.OnMenuIte
     private ImageView newPhotoImageView;
     private ImageView photoImageView;
 
-    private PhotoFile mPhoto;
+//    private CameraJpegFile mPhoto;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,23 +67,23 @@ public class MainActivity extends AppCompatActivity implements Toolbar.OnMenuIte
 
         photoImageView = findViewById(R.id.photoImageView);
         photoImageView.setAlpha(0f);
-        photoImageView.setOnClickListener((v -> {
-            if (mPhoto != null) {
-                MediaScannerConnection.scanFile(this, new String[]{mPhoto.getFile().getAbsolutePath()}, null,
-                        (path, uri) -> {
-                            Intent intent = new Intent();
-                            intent.setAction(Intent.ACTION_VIEW);
-                            intent.setDataAndType(uri, "image/*");
-                            startActivity(intent);
-                        });
-            }
-        }));
+//        photoImageView.setOnClickListener((v -> {
+//            if (mPhoto != null) {
+//                MediaScannerConnection.scanFile(this, new String[]{mPhoto.getFile().getAbsolutePath()}, null,
+//                        (path, uri) -> {
+//                            Intent intent = new Intent();
+//                            intent.setAction(Intent.ACTION_VIEW);
+//                            intent.setDataAndType(uri, "image/*");
+//                            startActivity(intent);
+//                        });
+//            }
+//        }));
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        cameraView.start();
+        cameraView.start(Facing.BACK);
     }
 
     @Override
@@ -112,8 +108,29 @@ public class MainActivity extends AppCompatActivity implements Toolbar.OnMenuIte
         }
 
         if (item.getItemId() == R.id.main_menu_gallery) {
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*");
+            String bucketId = "";
+
+            final String[] projection = new String[]{"DISTINCT " + MediaStore.Images.Media.BUCKET_DISPLAY_NAME + ", " + MediaStore.Images.Media.BUCKET_ID};
+            final Cursor cur = getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projection, null, null, null);
+
+            while (cur != null && cur.moveToNext()) {
+                final String bucketName = cur.getString((cur.getColumnIndex(MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME)));
+                if (bucketName.equals("CameraKit")) {
+                    bucketId = cur.getString((cur.getColumnIndex(MediaStore.Images.ImageColumns.BUCKET_ID)));
+                    break;
+                }
+            }
+
+            Uri mediaUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+
+            if (bucketId.length() > 0) {
+                mediaUri = mediaUri.buildUpon()
+                        .authority("media")
+                        .appendQueryParameter("bucketId", bucketId)
+                        .build();
+            }
+
+            Intent intent = new Intent(Intent.ACTION_VIEW, mediaUri);
             startActivity(intent);
             return true;
         }
@@ -123,47 +140,6 @@ public class MainActivity extends AppCompatActivity implements Toolbar.OnMenuIte
 
     private View.OnClickListener photoOnClickListener = v -> {
         CameraPhotographer photographer = new CameraPhotographer();
-        cameraView.use(photographer);
-
-        Photo photo = photographer.capture();
-        photo.toBytes()
-                .whenReady(photoBytes ->
-                        photoBytes.toGalleryFile()
-                                .whenReady(photoFile -> {
-                                    mPhoto = photoFile;
-                                    photoFile.toThumbnail()
-                                            .whenReady(thumbnailBytes ->
-                                                    thumbnailBytes.toBitmap()
-                                                            .whenReady(thumbnailBitmap -> {
-                                                                runOnUiThread(() -> {
-                                                                    newPhotoImageView.setImageBitmap(thumbnailBitmap.getBitmap());
-                                                                    newPhotoImageView.setAlpha(0f);
-                                                                    newPhotoImageView.setScaleX(1f);
-                                                                    newPhotoImageView.setScaleY(1f);
-                                                                    newPhotoImageView.setVisibility(View.VISIBLE);
-
-                                                                    newPhotoImageView.animate()
-                                                                            .alpha(1f)
-                                                                            .scaleX(0.1f)
-                                                                            .scaleY(0.1f)
-                                                                            .setDuration(450)
-                                                                            .setInterpolator(new DecelerateInterpolator())
-                                                                            .setListener(new AnimatorListenerAdapter() {
-                                                                                @Override
-                                                                                public void onAnimationEnd(Animator animation) {
-                                                                                    super.onAnimationEnd(animation);
-                                                                                    photoImageView.setAlpha(1f);
-                                                                                    photoImageView.setImageBitmap(thumbnailBitmap.getBitmap());
-
-                                                                                    newPhotoImageView.setVisibility(View.GONE);
-                                                                                }
-                                                                            })
-                                                                            .start();
-                                                                });
-                                                            })
-                                            );
-                                })
-                );
     };
 
 
@@ -180,7 +156,7 @@ public class MainActivity extends AppCompatActivity implements Toolbar.OnMenuIte
     };
 
     private View.OnClickListener facingOnClickListener = v -> {
-        cameraView.toggleFacing();
+//        cameraView.toggleFacing();
     };
 
 }
