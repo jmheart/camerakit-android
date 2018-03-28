@@ -39,7 +39,7 @@ dependencies {
     implementation 'com.google.android.gms:play-services-vision:11.6.2'
 }
 
-group = 'com.wonderkiln'
+group = 'com.lj'
 version = rootProject.ext.versionName
 
 install {
@@ -58,9 +58,9 @@ bintray {
     publish = true
     configurations = ['archives']
     pkg {
-        repo = 'snapshots'
-        name = 'CameraKit-Core-Android'
-        userOrg = 'wonderkiln'
+        repo = 'maven'
+        name = 'ljcamera'
+        userOrg = 'jmheart'
         vcsUrl = 'https://github.com/wonderkiln/CameraKit-Android.git'
         version {
             name = rootProject.ext.versionName

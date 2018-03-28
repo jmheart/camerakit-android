@@ -663,13 +663,15 @@ public class Camera1 extends CameraImpl {
             if (mCamera != null) {
                 releaseCamera();
             }
-
-            mCamera = Camera.open(mCameraId);
+            try {
+                mCamera = Camera.open(mCameraId);
+            }catch (Exception e){
+                e.printStackTrace();
+                return;
+            }
             mCameraParameters = mCamera.getParameters();
-
             collectCameraProperties();
             adjustCameraParameters();
-
             if (Build.VERSION.SDK_INT >= 16) {
                 mCamera.setAutoFocusMoveCallback(new Camera.AutoFocusMoveCallback() {
                     @Override
